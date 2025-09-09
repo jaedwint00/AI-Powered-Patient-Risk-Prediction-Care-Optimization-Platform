@@ -1,15 +1,25 @@
-import numpy as np
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import roc_auc_score
-import torch.nn as nn
-from typing import List, Dict
-import joblib
-from pathlib import Path
-from loguru import logger
+"""
+Machine Learning service for patient risk prediction.
 
-from app.models.schemas import RiskPredictionInput, RiskScore, RiskLevel
+Provides ML models for predicting hospital readmission, medication adherence,
+and disease progression risks using patient data and clinical features.
+"""
+from pathlib import Path
+from typing import Dict, List, Union
+
+import joblib  # type: ignore
+import numpy as np
+import torch.nn as nn
+from loguru import logger
+from sklearn.ensemble import (
+    GradientBoostingClassifier,  # type: ignore
+    RandomForestClassifier,
+)
+from sklearn.metrics import roc_auc_score  # type: ignore
+from sklearn.model_selection import train_test_split  # type: ignore
+from sklearn.preprocessing import StandardScaler  # type: ignore
+
+from app.models.schemas import RiskLevel, RiskPredictionInput, RiskScore
 from config.settings import settings
 
 
@@ -81,7 +91,8 @@ class MLService:
         np.random.seed(42)
         n_samples = 1000
 
-        # Features: age, length_of_stay, num_diagnoses, num_medications, emergency_visits
+        # Features: age, length_of_stay, num_diagnoses, num_medications,
+        # emergency_visits
         X = np.random.rand(n_samples, 5)
         X[:, 0] = np.random.normal(65, 15, n_samples)  # age
         X[:, 1] = np.random.exponential(5, n_samples)  # length_of_stay
@@ -89,7 +100,8 @@ class MLService:
         X[:, 3] = np.random.poisson(5, n_samples)  # num_medications
         X[:, 4] = np.random.poisson(2, n_samples)  # emergency_visits
 
-        # Target: readmission risk (higher for older patients, longer stays, more conditions)
+        # Target: readmission risk (higher for older patients, longer stays,
+        # more conditions)
         risk_score = (
             X[:, 0] / 100 + X[:, 1] / 20 + X[:, 2] / 10 + X[:, 3] / 15 + X[:, 4] / 5
         )
@@ -108,7 +120,6 @@ class MLService:
         model.fit(X_train_scaled, y_train)
 
         # Evaluate
-        y_pred = model.predict(X_test_scaled)
         y_prob = model.predict_proba(X_test_scaled)[:, 1]
         auc_score = roc_auc_score(y_test, y_prob)
 
@@ -138,7 +149,8 @@ class MLService:
         np.random.seed(42)
         n_samples = 1000
 
-        # Features: age, num_medications, complexity_score, socioeconomic_factor, previous_adherence
+        # Features: age, num_medications, complexity_score, socioeconomic_factor,
+        # previous_adherence
         X = np.random.rand(n_samples, 5)
         X[:, 0] = np.random.normal(60, 20, n_samples)  # age
         X[:, 1] = np.random.poisson(4, n_samples)  # num_medications
@@ -146,7 +158,8 @@ class MLService:
         X[:, 3] = np.random.uniform(0, 1, n_samples)  # socioeconomic_factor
         X[:, 4] = np.random.uniform(0, 1, n_samples)  # previous_adherence
 
-        # Non-adherence risk (higher for more medications, lower socioeconomic status)
+        # Non-adherence risk (higher for more medications, lower socioeconomic
+        # status)
         risk_score = X[:, 1] / 10 + (1 - X[:, 3]) + X[:, 2] / 10 + (1 - X[:, 4])
         y = (risk_score > np.percentile(risk_score, 70)).astype(int)
 
@@ -263,22 +276,23 @@ class MLService:
             base_features.extend([120, 80, 70, 98.6, 16, 98, 70, 170])  # Default values
 
         # Lab results features
-        lab_features = [
-            0,
-            0,
-            0,
+        lab_features: List[Union[int, float]] = [
+            0.0,
+            0.0,
+            0.0,
         ]  # Default: normal glucose, normal cholesterol, normal hba1c
         if prediction_input.lab_results:
             for lab in prediction_input.lab_results:
                 if "glucose" in lab.test_name.lower():
-                    lab_features[0] = lab.value
+                    lab_features[0] = float(lab.value)
                 elif "cholesterol" in lab.test_name.lower():
-                    lab_features[1] = lab.value
+                    lab_features[1] = float(lab.value)
                 elif "hba1c" in lab.test_name.lower():
-                    lab_features[2] = lab.value
+                    lab_features[2] = float(lab.value)
 
         # Medical history features
-        history_features = [0, 0, 0]  # num_diagnoses, num_medications, num_allergies
+        # num_diagnoses, num_medications, num_allergies
+        history_features = [0, 0, 0]
         if prediction_input.medical_history:
             history = prediction_input.medical_history
             history_features = [
@@ -422,9 +436,7 @@ class MLService:
 
         return factors if factors else ["standard_risk_factors"]
 
-    async def generate_recommendations(
-        self, patient_id: str, risk_scores: List[RiskScore]
-    ) -> List[str]:
+    async def generate_recommendations(self, risk_scores: List[RiskScore]) -> List[str]:
         """Generate care recommendations based on risk scores"""
         recommendations = []
 

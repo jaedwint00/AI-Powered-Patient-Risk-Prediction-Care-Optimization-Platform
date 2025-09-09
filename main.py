@@ -1,23 +1,37 @@
+"""
+AI-Powered Patient Risk Prediction & Care Optimization Platform
+
+Main FastAPI application entry point for the healthcare platform.
+Provides HIPAA-compliant AI services for patient risk prediction,
+care optimization, and clinical decision support.
+"""
+
+import os
+import sys
+from contextlib import asynccontextmanager
+
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer
-from contextlib import asynccontextmanager
-import uvicorn
 from loguru import logger
-import sys
-import os
+
+from app.api.routes import (alerts,  # pylint: disable=wrong-import-position
+                            auth, health, nlp, patients, predictions)
+from app.database.connection import \
+    init_database  # pylint: disable=wrong-import-position
+from app.utils.logging_config import \
+    setup_logging  # pylint: disable=wrong-import-position
+from config.settings import settings  # pylint: disable=wrong-import-position
 
 # Add the app directory to the Python path
 sys.path.append(os.path.join(os.path.dirname(__file__), "app"))
 
-from config.settings import settings
-from app.api.routes import health, patients, predictions, alerts, nlp, auth
-from app.database.connection import init_database
-from app.utils.logging_config import setup_logging
+# Import after path setup to avoid import errors
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(fastapi_app: FastAPI):  # pylint: disable=unused-argument
     """Application lifespan events"""
     # Startup
     logger.info("Starting AI-Powered Patient Risk Prediction Platform")
@@ -34,7 +48,9 @@ async def lifespan(app: FastAPI):
 # Initialize FastAPI app
 app = FastAPI(
     title=settings.app_name,
-    description="HIPAA-compliant AI platform for patient risk prediction and care optimization",
+    description=(
+        "HIPAA-compliant AI platform for patient risk prediction and care optimization"
+    ),
     version=settings.app_version,
     lifespan=lifespan,
     docs_url="/docs" if settings.debug else None,

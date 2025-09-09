@@ -1,17 +1,26 @@
-import asyncio
-from typing import List, Dict, Any, Callable
-from datetime import datetime, timedelta
-import json
-from loguru import logger
-from dataclasses import dataclass
-from enum import Enum
+"""
+Real-time alerting service for the AI-Powered Patient Risk Prediction platform.
 
-from app.models.schemas import AlertCreate, RiskLevel
+Provides comprehensive alert monitoring, rule evaluation, and notification
+capabilities for critical patient events and risk thresholds.
+"""
+import asyncio
+import json
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Callable, Dict, List
+
+from loguru import logger
+
 from app.database.connection import DatabaseManager
+from app.models.schemas import AlertCreate, RiskLevel
 from config.settings import settings
 
 
 class AlertType(str, Enum):
+    """Alert type enumeration for different categories of alerts."""
+
     RISK_THRESHOLD = "risk_threshold"
     LAB_ABNORMAL = "lab_abnormal"
     VITAL_CRITICAL = "vital_critical"
@@ -57,7 +66,10 @@ class AlertService:
                     and data.get("risk_score", 0) >= settings.risk_threshold_high
                 ),
                 severity=RiskLevel.HIGH,
-                message_template="High readmission risk detected for patient {patient_id} (score: {risk_score:.2f})",
+                message_template=(
+                    "High readmission risk detected for patient {patient_id} "
+                    "(score: {risk_score:.2f})"
+                ),
                 cooldown_minutes=120,
             )
         )
@@ -74,7 +86,9 @@ class AlertService:
                     or data.get("oxygen_saturation", 100) < 90
                 ),
                 severity=RiskLevel.CRITICAL,
-                message_template="Critical vital signs detected for patient {patient_id}",
+                message_template=(
+                    "Critical vital signs detected for patient {patient_id}"
+                ),
                 cooldown_minutes=30,
             )
         )
@@ -86,7 +100,10 @@ class AlertService:
                 alert_type=AlertType.LAB_ABNORMAL,
                 condition=lambda data: data.get("is_abnormal", False),
                 severity=RiskLevel.MEDIUM,
-                message_template="Abnormal lab result: {test_name} = {value} {unit} for patient {patient_id}",
+                message_template=(
+                    "Abnormal lab result: {test_name} = {value} {unit} "
+                    "for patient {patient_id}"
+                ),
                 cooldown_minutes=60,
             )
         )
@@ -112,7 +129,7 @@ class AlertService:
 
         try:
             await asyncio.gather(*tasks)
-        except Exception as e:
+        except (asyncio.CancelledError, RuntimeError, ValueError) as e:
             logger.error(f"Alert monitoring service error: {e}")
         finally:
             self.running = False
@@ -130,7 +147,7 @@ class AlertService:
                 recent_predictions = await self.db.execute_query(
                     """
                     SELECT patient_id, risk_type, risk_score, risk_level, created_at
-                    FROM risk_predictions 
+                    FROM risk_predictions
                     WHERE created_at >= ? AND risk_level IN ('high', 'critical')
                 """,
                     [datetime.utcnow() - timedelta(minutes=5)],
@@ -157,7 +174,7 @@ class AlertService:
 
                 await asyncio.sleep(60)  # Check every minute
 
-            except Exception as e:
+            except (RuntimeError, ValueError, TypeError) as e:
                 logger.error(f"Error monitoring risk predictions: {e}")
                 await asyncio.sleep(60)
 
@@ -168,9 +185,9 @@ class AlertService:
                 # Check for recent critical vitals
                 recent_vitals = await self.db.execute_query(
                     """
-                    SELECT patient_id, systolic_bp, diastolic_bp, heart_rate, 
+                    SELECT patient_id, systolic_bp, diastolic_bp, heart_rate,
                            oxygen_saturation, recorded_at
-                    FROM vital_signs 
+                    FROM vital_signs
                     WHERE recorded_at >= ?
                 """,
                     [datetime.utcnow() - timedelta(minutes=10)],
@@ -199,7 +216,7 @@ class AlertService:
 
                 await asyncio.sleep(120)  # Check every 2 minutes
 
-            except Exception as e:
+            except (RuntimeError, ValueError, TypeError) as e:
                 logger.error(f"Error monitoring vital signs: {e}")
                 await asyncio.sleep(120)
 
@@ -211,7 +228,7 @@ class AlertService:
                 recent_labs = await self.db.execute_query(
                     """
                     SELECT patient_id, test_name, value, unit, is_abnormal, timestamp
-                    FROM lab_results 
+                    FROM lab_results
                     WHERE timestamp >= ? AND is_abnormal = true
                 """,
                     [datetime.utcnow() - timedelta(minutes=30)],
@@ -233,7 +250,7 @@ class AlertService:
 
                 await asyncio.sleep(300)  # Check every 5 minutes
 
-            except Exception as e:
+            except (RuntimeError, ValueError, TypeError) as e:
                 logger.error(f"Error monitoring lab results: {e}")
                 await asyncio.sleep(300)
 
@@ -259,7 +276,7 @@ class AlertService:
                     await self._create_alert(rule, data)
                     self.active_alerts[cooldown_key] = datetime.utcnow()
 
-            except Exception as e:
+            except (RuntimeError, ValueError, KeyError, TypeError) as e:
                 logger.error(f"Error evaluating alert rule {rule.rule_id}: {e}")
 
     async def _create_alert(self, rule: AlertRule, data: Dict[str, Any]):
@@ -272,7 +289,7 @@ class AlertService:
             await self.db.execute_query(
                 """
                 INSERT INTO alerts (
-                    patient_id, alert_type, severity, message, 
+                    patient_id, alert_type, severity, message,
                     triggered_by, metadata, created_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
@@ -301,7 +318,7 @@ class AlertService:
 
             logger.info(f"Created alert for patient {patient_id}: {message}")
 
-        except Exception as e:
+        except (RuntimeError, ValueError, KeyError, TypeError) as e:
             logger.error(f"Failed to create alert: {e}")
 
     async def _cleanup_old_alerts(self):
@@ -325,7 +342,7 @@ class AlertService:
 
                 await asyncio.sleep(3600)  # Clean up every hour
 
-            except Exception as e:
+            except (RuntimeError, ValueError, KeyError) as e:
                 logger.error(f"Error during alert cleanup: {e}")
                 await asyncio.sleep(3600)
 
@@ -348,7 +365,7 @@ class AlertService:
                     await callback(alert_data)
                 else:
                     callback(alert_data)
-            except Exception as e:
+            except (RuntimeError, ValueError, TypeError) as e:
                 logger.error(f"Error notifying alert subscriber: {e}")
 
     async def trigger_manual_alert(self, alert_create: AlertCreate) -> bool:
@@ -357,7 +374,7 @@ class AlertService:
             await self.db.execute_query(
                 """
                 INSERT INTO alerts (
-                    patient_id, alert_type, severity, message, 
+                    patient_id, alert_type, severity, message,
                     triggered_by, metadata, created_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
@@ -389,7 +406,7 @@ class AlertService:
             logger.info(f"Manual alert triggered for patient {alert_create.patient_id}")
             return True
 
-        except Exception as e:
+        except (RuntimeError, ValueError, KeyError, TypeError) as e:
             logger.error(f"Failed to trigger manual alert: {e}")
             return False
 
@@ -400,7 +417,7 @@ class AlertService:
             active_by_severity = await self.db.execute_query(
                 """
                 SELECT severity, COUNT(*) as count
-                FROM alerts 
+                FROM alerts
                 WHERE status = 'active'
                 GROUP BY severity
             """
@@ -409,7 +426,7 @@ class AlertService:
             # Alerts in last 24 hours
             recent_alerts = await self.db.execute_query(
                 """
-                SELECT COUNT(*) FROM alerts 
+                SELECT COUNT(*) FROM alerts
                 WHERE created_at >= ?
             """,
                 [datetime.utcnow() - timedelta(hours=24)],
@@ -419,7 +436,7 @@ class AlertService:
             common_types = await self.db.execute_query(
                 """
                 SELECT alert_type, COUNT(*) as count
-                FROM alerts 
+                FROM alerts
                 WHERE created_at >= ?
                 GROUP BY alert_type
                 ORDER BY count DESC
@@ -437,6 +454,6 @@ class AlertService:
                 "subscribers": len(self.alert_subscribers),
             }
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Failed to get alert statistics: {e}")
             return {}

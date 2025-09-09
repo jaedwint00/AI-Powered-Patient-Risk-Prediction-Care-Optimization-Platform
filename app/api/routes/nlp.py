@@ -1,12 +1,18 @@
+"""
+NLP processing API routes for the AI-Powered Patient Risk Prediction platform.
+
+Provides REST endpoints for medical text processing including entity extraction,
+text summarization, semantic search, and NLP record management.
+"""
 import json
 import uuid
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from loguru import logger
 
-from app.database.connection import get_database, DatabaseManager
+from app.database.connection import DatabaseManager, get_database
 from app.models.schemas import NLPProcessingRequest, NLPProcessingResponse
 from app.services.nlp_service_simple import NLPService
 
@@ -49,7 +55,9 @@ async def process_medical_text(
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid task. Must be 'extract_entities', 'summarize', or 'search'",
+                detail=(
+                    "Invalid task. Must be 'extract_entities', 'summarize', or 'search'"
+                ),
             )
 
         # Store processing record if patient_id provided
@@ -93,11 +101,11 @@ async def process_medical_text(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
-        )
+        ) from e
 
 
 @router.post("/nlp/extract-entities")
-async def extract_medical_entities(text: str, patient_id: Optional[str] = None):
+async def extract_medical_entities(text: str):
     """
     Extract medical entities from text
     """
@@ -116,13 +124,11 @@ async def extract_medical_entities(text: str, patient_id: Optional[str] = None):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
-        )
+        ) from e
 
 
 @router.post("/nlp/summarize")
-async def summarize_medical_text(
-    text: str, max_length: int = 150, patient_id: Optional[str] = None
-):
+async def summarize_medical_text(text: str, max_length: int = 150):
     """
     Summarize medical text
     """
@@ -141,7 +147,7 @@ async def summarize_medical_text(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
-        )
+        ) from e
 
 
 @router.post("/nlp/semantic-search")
@@ -159,7 +165,7 @@ async def semantic_search(
         # Get documents for search
         if patient_id:
             records_query = """
-                SELECT content FROM medical_records 
+                SELECT content FROM medical_records
                 WHERE patient_id = ? AND content IS NOT NULL
                 ORDER BY created_at DESC LIMIT 100
             """
@@ -167,7 +173,7 @@ async def semantic_search(
             documents = [record[0] for record in records if record[0]]
         else:
             records_query = """
-                SELECT content FROM medical_records 
+                SELECT content FROM medical_records
                 WHERE content IS NOT NULL
                 ORDER BY created_at DESC LIMIT 100
             """
@@ -187,7 +193,7 @@ async def semantic_search(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
-        )
+        ) from e
 
 
 @router.get("/nlp/patient-records/{patient_id}")
@@ -213,7 +219,7 @@ async def get_patient_nlp_records(
 
         query = """
             SELECT id, record_type, content, processed_content, created_at
-            FROM medical_records 
+            FROM medical_records
             WHERE patient_id = ?
         """
         params = [patient_id]
@@ -255,4 +261,4 @@ async def get_patient_nlp_records(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
-        )
+        ) from e

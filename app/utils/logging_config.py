@@ -1,6 +1,9 @@
-from loguru import logger
-import sys
+"""HIPAA-compliant logging configuration module."""
 import os
+import sys
+
+from loguru import logger
+
 from config.settings import settings
 
 
@@ -17,7 +20,11 @@ def setup_logging():
     if settings.debug:
         logger.add(
             sys.stdout,
-            format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+            format=(
+                "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | "
+                "<level>{level: <8}</level> | <cyan>{name}</cyan>:"
+                "<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
+            ),
             level=settings.log_level,
             colorize=True,
         )
@@ -25,7 +32,10 @@ def setup_logging():
     # File logging (HIPAA compliant - no PII)
     logger.add(
         settings.log_file,
-        format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}",
+        format=(
+            "{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | "
+            "{name}:{function}:{line} - {message}"
+        ),
         level=settings.log_level,
         rotation="100 MB",
         retention="30 days",
@@ -40,7 +50,10 @@ def setup_logging():
     if settings.audit_logging:
         logger.add(
             "./logs/audit.log",
-            format="{time:YYYY-MM-DD HH:mm:ss} | AUDIT | {extra[user_id]} | {extra[action]} | {extra[resource]} | {message}",
+            format=(
+                "{time:YYYY-MM-DD HH:mm:ss} | AUDIT | {extra[user_id]} | "
+                "{extra[action]} | {extra[resource]} | {message}"
+            ),
             level="INFO",
             rotation="50 MB",
             retention="7 years",  # HIPAA requirement

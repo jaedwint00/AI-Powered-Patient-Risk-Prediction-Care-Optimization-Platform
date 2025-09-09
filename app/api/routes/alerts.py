@@ -1,10 +1,18 @@
-from fastapi import APIRouter, HTTPException, Depends, status
-from typing import List, Optional
-from app.models.schemas import Alert, AlertCreate, AlertStatus, RiskLevel
-from app.database.connection import get_database, DatabaseManager
-from loguru import logger
+"""
+Alert management API routes for the AI-Powered Patient Risk Prediction platform.
+
+Provides REST endpoints for creating, listing, acknowledging, and resolving
+patient alerts with comprehensive filtering and status management.
+"""
 import json
 from datetime import datetime
+from typing import List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from loguru import logger
+
+from app.database.connection import DatabaseManager, get_database
+from app.models.schemas import Alert, AlertCreate, AlertStatus, RiskLevel
 
 router = APIRouter()
 
@@ -29,7 +37,7 @@ async def create_alert(alert: AlertCreate, db: DatabaseManager = Depends(get_dat
         await db.execute_query(
             """
             INSERT INTO alerts (
-                patient_id, alert_type, severity, message, 
+                patient_id, alert_type, severity, message,
                 triggered_by, metadata, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
@@ -47,7 +55,7 @@ async def create_alert(alert: AlertCreate, db: DatabaseManager = Depends(get_dat
         # Get the created alert
         result = await db.execute_query(
             """
-            SELECT * FROM alerts 
+            SELECT * FROM alerts
             WHERE patient_id = ? AND created_at = (
                 SELECT MAX(created_at) FROM alerts WHERE patient_id = ?
             )
@@ -87,7 +95,7 @@ async def create_alert(alert: AlertCreate, db: DatabaseManager = Depends(get_dat
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
-        )
+        ) from e
 
 
 @router.get("/alerts", response_model=List[Alert])
@@ -119,7 +127,7 @@ async def list_alerts(
             params.append(patient_id)
 
         query += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
-        params.extend([limit, skip])
+        params.extend([str(limit), str(skip)])
 
         result = await db.execute_query(query, params)
 
@@ -149,7 +157,7 @@ async def list_alerts(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
-        )
+        ) from e
 
 
 @router.put("/alerts/{alert_id}/acknowledge")
@@ -173,7 +181,7 @@ async def acknowledge_alert(
         # Update alert status
         await db.execute_query(
             """
-            UPDATE alerts 
+            UPDATE alerts
             SET status = 'acknowledged', acknowledged_at = ?, acknowledged_by = ?
             WHERE id = ?
         """,
@@ -191,7 +199,7 @@ async def acknowledge_alert(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
-        )
+        ) from e
 
 
 @router.put("/alerts/{alert_id}/resolve")
@@ -213,7 +221,7 @@ async def resolve_alert(alert_id: int, db: DatabaseManager = Depends(get_databas
         # Update alert status
         await db.execute_query(
             """
-            UPDATE alerts 
+            UPDATE alerts
             SET status = 'resolved', resolved_at = ?
             WHERE id = ?
         """,
@@ -231,7 +239,7 @@ async def resolve_alert(alert_id: int, db: DatabaseManager = Depends(get_databas
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
-        )
+        ) from e
 
 
 @router.get("/alerts/active/count")
@@ -243,7 +251,7 @@ async def get_active_alerts_count(db: DatabaseManager = Depends(get_database)):
         result = await db.execute_query(
             """
             SELECT severity, COUNT(*) as count
-            FROM alerts 
+            FROM alerts
             WHERE status = 'active'
             GROUP BY severity
         """
@@ -264,4 +272,4 @@ async def get_active_alerts_count(db: DatabaseManager = Depends(get_database)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
-        )
+        ) from e

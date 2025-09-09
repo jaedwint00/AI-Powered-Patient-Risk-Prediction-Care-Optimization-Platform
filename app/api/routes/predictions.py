@@ -4,16 +4,12 @@ import uuid
 from datetime import datetime, timedelta
 from typing import List
 
-from fastapi import APIRouter, HTTPException, Depends, status, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from loguru import logger
 
-from app.models.schemas import (
-    RiskPredictionInput,
-    RiskPredictionResponse,
-    RiskScore,
-    RiskLevel,
-)
-from app.database.connection import get_database, DatabaseManager
+from app.database.connection import DatabaseManager, get_database
+from app.models.schemas import (RiskLevel, RiskPredictionInput,
+                                RiskPredictionResponse, RiskScore)
 from app.services.ml_service import MLService
 
 router = APIRouter()
@@ -189,9 +185,7 @@ async def get_patient_predictions(
         return predictions
 
     except Exception as e:
-        logger.error(
-            f"Error retrieving predictions for patient {patient_id}: {e}"
-        )
+        logger.error(f"Error retrieving predictions for patient {patient_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
@@ -268,8 +262,7 @@ async def create_risk_alerts(
                             {
                                 "risk_score": risk_score.score,
                                 "confidence": risk_score.confidence,
-                                "contributing_factors":
-                                    risk_score.contributing_factors,
+                                "contributing_factors": risk_score.contributing_factors,
                             }
                         ),
                         datetime.utcnow(),
@@ -279,10 +272,8 @@ async def create_risk_alerts(
         logger.info(f"Created risk alerts for patient: {patient_id}")
 
     except (ValueError, TypeError, KeyError) as e:
-        logger.error(
-            f"Failed to create risk alerts for patient {patient_id}: {e}"
-        )
-    except Exception as e:
+        logger.error(f"Failed to create risk alerts for patient {patient_id}: {e}")
+    except (ConnectionError, RuntimeError, AttributeError) as e:
         logger.error(
             f"Unexpected error creating risk alerts for patient {patient_id}: {e}"
         )

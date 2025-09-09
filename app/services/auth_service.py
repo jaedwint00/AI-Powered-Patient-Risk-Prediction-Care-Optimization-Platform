@@ -7,16 +7,17 @@ and HIPAA-compliant audit logging functionality.
 """
 
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any
-from fastapi import HTTPException, status, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from passlib.context import CryptContext
-from jose import JWTError, jwt
-from pydantic import BaseModel
-from loguru import logger
+from typing import Any, Dict, Optional
 
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
+from loguru import logger
+from passlib.context import CryptContext
+from pydantic import BaseModel
+
+from app.database.connection import DatabaseManager, get_database
 from config.settings import settings
-from app.database.connection import get_database, DatabaseManager
 
 
 class TokenData(BaseModel):
@@ -37,6 +38,7 @@ class UserCreate(BaseModel):
 
 class User(BaseModel):
     """User model for authentication."""
+
     id: int
     username: str
     email: str
@@ -53,10 +55,7 @@ class AuthService:
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         self.security = HTTPBearer()
 
-    def verify_password(
-            self,
-            plain_password: str,
-            hashed_password: str) -> bool:
+    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         """Verify a password against its hash"""
         return self.pwd_context.verify(plain_password, hashed_password)
 
@@ -109,10 +108,7 @@ class AuthService:
                 headers={"WWW-Authenticate": "Bearer"},
             ) from exc
 
-    async def create_user(
-            self,
-            user_create: UserCreate,
-            db: DatabaseManager) -> User:
+    async def create_user(self, user_create: UserCreate, db: DatabaseManager) -> User:
         """Create a new user"""
         try:
             # Check if user already exists
@@ -216,7 +212,7 @@ class AuthService:
                 last_login=datetime.utcnow(),
             )
 
-        except Exception as e:
+        except (ValueError, TypeError, ConnectionError, RuntimeError) as e:
             logger.error(f"Authentication error: {e}")
             return None
 
@@ -354,7 +350,7 @@ class AuthService:
                     ],
                 )
 
-        except Exception as e:
+        except (ValueError, TypeError, ConnectionError, RuntimeError) as e:
             logger.error(f"Failed to log user action: {e}")
 
 

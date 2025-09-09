@@ -1,10 +1,19 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
+"""
+Pydantic schemas for the AI-Powered Patient Risk Prediction platform.
+
+Defines data models for patients, risk predictions, alerts, NLP processing,
+and other core entities used throughout the healthcare platform.
+"""
 from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 
 class RiskLevel(str, Enum):
+    """Risk level enumeration for patient risk assessments."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -12,18 +21,24 @@ class RiskLevel(str, Enum):
 
 
 class PatientGender(str, Enum):
+    """Patient gender enumeration."""
+
     MALE = "male"
     FEMALE = "female"
     OTHER = "other"
 
 
 class AlertStatus(str, Enum):
+    """Alert status enumeration for tracking alert lifecycle."""
+
     ACTIVE = "active"
     ACKNOWLEDGED = "acknowledged"
     RESOLVED = "resolved"
 
 
 class PatientBase(BaseModel):
+    """Base patient model with core patient information."""
+
     patient_id: str = Field(..., description="Unique patient identifier")
     age: int = Field(..., ge=0, le=150, description="Patient age")
     gender: PatientGender
@@ -31,19 +46,25 @@ class PatientBase(BaseModel):
 
 
 class PatientCreate(PatientBase):
-    pass
+    """Patient creation request model."""
 
 
 class Patient(PatientBase):
+    """Complete patient model with database fields."""
+
     id: int
     created_at: datetime
     updated_at: Optional[datetime] = None
 
     class Config:
+        """Pydantic configuration for Patient model."""
+
         from_attributes = True
 
 
 class VitalSigns(BaseModel):
+    """Patient vital signs measurements."""
+
     systolic_bp: Optional[float] = Field(None, ge=50, le=300)
     diastolic_bp: Optional[float] = Field(None, ge=30, le=200)
     heart_rate: Optional[float] = Field(None, ge=30, le=250)
@@ -55,6 +76,8 @@ class VitalSigns(BaseModel):
 
 
 class LabResult(BaseModel):
+    """Laboratory test result model."""
+
     test_name: str
     value: float
     unit: str
@@ -64,6 +87,8 @@ class LabResult(BaseModel):
 
 
 class MedicalHistory(BaseModel):
+    """Patient medical history information."""
+
     diagnoses: List[str] = []
     medications: List[str] = []
     allergies: List[str] = []
@@ -72,6 +97,8 @@ class MedicalHistory(BaseModel):
 
 
 class RiskPredictionInput(BaseModel):
+    """Input data for ML risk prediction models."""
+
     patient_id: str
     vital_signs: Optional[VitalSigns] = None
     lab_results: Optional[List[LabResult]] = []
@@ -80,6 +107,8 @@ class RiskPredictionInput(BaseModel):
 
 
 class RiskScore(BaseModel):
+    """Individual risk score result from ML prediction."""
+
     risk_type: str  # readmission, medication_adherence, disease_progression
     score: float = Field(..., ge=0, le=1)
     risk_level: RiskLevel
@@ -88,6 +117,8 @@ class RiskScore(BaseModel):
 
 
 class RiskPredictionResponse(BaseModel):
+    """Complete risk prediction response with recommendations."""
+
     patient_id: str
     prediction_id: str
     timestamp: datetime
@@ -97,6 +128,8 @@ class RiskPredictionResponse(BaseModel):
 
 
 class AlertCreate(BaseModel):
+    """Alert creation request model."""
+
     patient_id: str
     alert_type: str
     severity: RiskLevel
@@ -106,6 +139,8 @@ class AlertCreate(BaseModel):
 
 
 class Alert(AlertCreate):
+    """Complete alert model with database fields."""
+
     id: int
     status: AlertStatus = AlertStatus.ACTIVE
     created_at: datetime
@@ -114,16 +149,22 @@ class Alert(AlertCreate):
     resolved_at: Optional[datetime] = None
 
     class Config:
+        """Pydantic configuration for Alert model."""
+
         from_attributes = True
 
 
 class NLPProcessingRequest(BaseModel):
+    """Request model for NLP text processing."""
+
     text: str = Field(..., min_length=1, max_length=10000)
     task: str = Field(..., description="extract_entities, summarize, or search")
     patient_id: Optional[str] = None
 
 
 class ExtractedEntity(BaseModel):
+    """Named entity extracted from clinical text."""
+
     entity_type: str  # diagnosis, medication, allergy, procedure
     text: str
     confidence: float = Field(..., ge=0, le=1)
@@ -132,6 +173,8 @@ class ExtractedEntity(BaseModel):
 
 
 class NLPProcessingResponse(BaseModel):
+    """Response model for NLP processing results."""
+
     request_id: str
     task: str
     patient_id: Optional[str] = None
@@ -140,6 +183,8 @@ class NLPProcessingResponse(BaseModel):
 
 
 class CareRecommendation(BaseModel):
+    """Clinical care recommendation model."""
+
     recommendation_id: str
     patient_id: str
     recommendation_type: str  # medication, lifestyle, follow_up, etc.
@@ -152,6 +197,8 @@ class CareRecommendation(BaseModel):
 
 
 class HealthMetrics(BaseModel):
+    """System health and performance metrics."""
+
     total_patients: int
     high_risk_patients: int
     active_alerts: int

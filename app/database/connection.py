@@ -1,9 +1,12 @@
-import duckdb
+"""Database connection and management module for healthcare platform."""
 from pathlib import Path
+
+import duckdb
 from loguru import logger
 
 
 class DatabaseManager:
+    """Manages DuckDB database connections and operations for healthcare data."""
     def __init__(self):
         self.connection = None
         self.db_path = Path("./data/healthcare.db")

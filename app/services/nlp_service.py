@@ -1,3 +1,10 @@
+"""
+Natural Language Processing service for medical text analysis.
+
+Provides comprehensive NLP capabilities including entity extraction,
+text summarization, semantic search, and medical text classification
+for the AI-Powered Patient Risk Prediction platform.
+"""
 import re
 from typing import Any, Dict, List, Optional
 
@@ -5,7 +12,8 @@ import numpy as np
 import torch
 from loguru import logger
 from sentence_transformers import SentenceTransformer  # type: ignore
-from transformers import AutoModel, AutoTokenizer, BertModel, BertTokenizer, pipeline  # type: ignore
+from transformers import (AutoModel, AutoTokenizer, BertModel,  # type: ignore
+                          BertTokenizer, pipeline)
 
 from app.models.schemas import ExtractedEntity
 from config.settings import settings
@@ -14,7 +22,7 @@ from config.settings import settings
 class NLPService:
     """Natural Language Processing service for medical text analysis"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.models: Dict[str, Any] = {}
         self.tokenizers: Dict[str, Any] = {}
@@ -25,7 +33,7 @@ class NLPService:
         # Initialize models
         self._initialize_models()
 
-    def _initialize_models(self):
+    def _initialize_models(self) -> None:
         """Initialize NLP models"""
         try:
             # Clinical BERT for medical text understanding
@@ -60,7 +68,7 @@ class NLPService:
             logger.error(f"Failed to initialize NLP models: {e}")
             self._initialize_fallback_models()
 
-    def _initialize_fallback_models(self):
+    def _initialize_fallback_models(self) -> None:
         """Initialize fallback models if main models fail"""
         try:
             logger.warning("Initializing fallback NLP models")
@@ -496,7 +504,7 @@ class NLPService:
                 categories["imaging_report"] += 1
 
             # Determine primary category
-            primary_category = max(categories.keys(), key=categories.get)
+            primary_category = max(categories, key=lambda k: categories[k])
             confidence = (
                 categories[primary_category] / sum(categories.values())
                 if sum(categories.values()) > 0

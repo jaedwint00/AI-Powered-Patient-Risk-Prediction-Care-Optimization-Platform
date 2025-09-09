@@ -5,6 +5,13 @@ This script demonstrates the AI healthcare platform capabilities with realistic 
 without requiring database access (works alongside running server)
 """
 
+from app.models.schemas import (  # pylint: disable=wrong-import-position
+    RiskPredictionInput,
+    VitalSigns,
+    MedicalHistory,
+)
+from app.services.nlp_service_simple import NLPService  # pylint: disable=wrong-import-position
+from app.services.ml_service import MLService  # pylint: disable=wrong-import-position
 import asyncio
 import os
 import sys
@@ -12,8 +19,7 @@ import sys
 # Add project root to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.services.ml_service import MLService
-from app.services.nlp_service_simple import NLPService
+# Import after path setup to avoid import errors
 
 
 class RealisticHealthcareDemo:
@@ -76,7 +82,18 @@ class RealisticHealthcareDemo:
                         "is_abnormal": True,
                     },
                 ],
-                "clinical_note": """67-year-old male with history of type 2 diabetes mellitus, hypertension, and coronary artery disease presents for routine follow-up. Patient reports good adherence to medications including metformin 1000mg twice daily and lisinopril 10mg daily. Blood pressure today 165/95 mmHg, concerning for suboptimal control. HbA1c result shows 8.2%, indicating poor glycemic control. Patient admits to dietary indiscretions over the holidays. Physical exam notable for mild pedal edema. Plan: Increase lisinopril to 20mg daily, reinforce dietary counseling, recheck labs in 3 months. Will consider cardiology referral if BP remains elevated.""",
+                "clinical_note": (
+                    "67-year-old male with history of type 2 diabetes mellitus, "
+                    "hypertension, and coronary artery disease presents for routine "
+                    "follow-up. Patient reports good adherence to medications including "
+                    "metformin 1000mg twice daily and lisinopril 10mg daily. Blood "
+                    "pressure today 165/95 mmHg, concerning for suboptimal control. "
+                    "HbA1c result shows 8.2%, indicating poor glycemic control. Patient "
+                    "admits to dietary indiscretions over the holidays. Physical exam "
+                    "notable for mild pedal edema. Plan: Increase lisinopril to 20mg "
+                    "daily, reinforce dietary counseling, recheck labs in 3 months. "
+                    "Will consider cardiology referral if BP remains elevated."
+                ),
             },
             {
                 "patient_id": "PAT002",
@@ -118,7 +135,17 @@ class RealisticHealthcareDemo:
                         "is_abnormal": True,
                     },
                 ],
-                "clinical_note": """45-year-old female with asthma and anxiety disorder presents with worsening shortness of breath over past week. Patient reports increased use of albuterol inhaler, now using 4-6 times daily. Denies fever, chest pain. Exam shows mild expiratory wheeze, oxygen saturation 94% on room air. Peak flow reduced from baseline. Anxiety appears well-controlled on current sertraline dose. Patient reports work stress as potential trigger. Assessment: Asthma exacerbation, likely stress-related. Plan: Prednisone taper, increase controller therapy, stress management counseling.""",
+                "clinical_note": (
+                    "45-year-old female with asthma and anxiety disorder presents with "
+                    "worsening shortness of breath over past week. Patient reports "
+                    "increased use of albuterol inhaler, now using 4-6 times daily. "
+                    "Denies fever, chest pain. Exam shows mild expiratory wheeze, "
+                    "oxygen saturation 94% on room air. Peak flow reduced from baseline. "
+                    "Anxiety appears well-controlled on current sertraline dose. Patient "
+                    "reports work stress as potential trigger. Assessment: Asthma "
+                    "exacerbation, likely stress-related. Plan: Prednisone taper, "
+                    "increase controller therapy, stress management counseling."
+                ),
             },
             {
                 "patient_id": "PAT003",
@@ -175,7 +202,17 @@ class RealisticHealthcareDemo:
                         "is_abnormal": True,
                     },
                 ],
-                "clinical_note": """72-year-old female with heart failure, atrial fibrillation, and chronic kidney disease presents for urgent visit due to increasing shortness of breath and weight gain of 5 pounds over 3 days. Patient reports orthopnea and PND. Current medications include furosemide 40mg daily and warfarin 5mg daily. INR today 3.2, slightly elevated. Physical exam shows JVD, bilateral lower extremity edema, and crackles at lung bases. BNP elevated at 1200 pg/mL. Assessment: Heart failure exacerbation. Plan: Increase furosemide to 80mg daily, strict fluid restriction, daily weights.""",
+                "clinical_note": (
+                    "72-year-old female with heart failure, atrial fibrillation, and "
+                    "chronic kidney disease presents for urgent visit due to increasing "
+                    "shortness of breath and weight gain of 5 pounds over 3 days. "
+                    "Patient reports orthopnea and PND. Current medications include "
+                    "furosemide 40mg daily and warfarin 5mg daily. INR today 3.2, "
+                    "slightly elevated. Physical exam shows JVD, bilateral lower "
+                    "extremity edema, and crackles at lung bases. BNP elevated at "
+                    "1200 pg/mL. Assessment: Heart failure exacerbation. Plan: Increase "
+                    "furosemide to 80mg daily, strict fluid restriction, daily weights."
+                ),
             },
             {
                 "patient_id": "PAT004",
@@ -216,7 +253,17 @@ class RealisticHealthcareDemo:
                         "is_abnormal": True,
                     },
                 ],
-                "clinical_note": """34-year-old male with type 1 diabetes and diabetic retinopathy for routine diabetes management. Patient reports frequent hypoglycemic episodes, especially overnight. Current insulin regimen includes glargine 24 units at bedtime and lispro with meals. Recent CGM data shows significant glucose variability. Ophthalmology follow-up shows stable retinopathy. Patient expresses frustration with glucose control. HbA1c today 7.8%, improved from previous 9.1%. Plan: Reduce glargine to 20 units, diabetes education referral, consider insulin pump therapy.""",
+                "clinical_note": (
+                    "34-year-old male with type 1 diabetes and diabetic retinopathy "
+                    "for routine diabetes management. Patient reports frequent "
+                    "hypoglycemic episodes, especially overnight. Current insulin "
+                    "regimen includes glargine 24 units at bedtime and lispro with "
+                    "meals. Recent CGM data shows significant glucose variability. "
+                    "Ophthalmology follow-up shows stable retinopathy. Patient expresses "
+                    "frustration with glucose control. HbA1c today 7.8%, improved from "
+                    "previous 9.1%. Plan: Reduce glargine to 20 units, diabetes "
+                    "education referral, consider insulin pump therapy."
+                ),
             },
             {
                 "patient_id": "PAT005",
@@ -273,7 +320,17 @@ class RealisticHealthcareDemo:
                         "is_abnormal": True,
                     },
                 ],
-                "clinical_note": """58-year-old female with history of breast cancer in remission, osteoporosis, and depression for oncology follow-up. Patient completed chemotherapy 18 months ago, currently on tamoxifen. Recent mammogram and tumor markers normal. Reports mild joint pain, possibly related to tamoxifen. DEXA scan shows worsening osteoporosis despite alendronate. Depression well-controlled on fluoxetine. Patient anxious about cancer recurrence but coping well overall. Plan: Continue tamoxifen, consider switching to different SERM if joint pain worsens. Increase calcium and vitamin D.""",
+                "clinical_note": (
+                    "58-year-old female with history of breast cancer in remission, "
+                    "osteoporosis, and depression for oncology follow-up. Patient "
+                    "completed chemotherapy 18 months ago, currently on tamoxifen. "
+                    "Recent mammogram and tumor markers normal. Reports mild joint "
+                    "pain, possibly related to tamoxifen. DEXA scan shows worsening "
+                    "osteoporosis despite alendronate. Depression well-controlled on "
+                    "fluoxetine. Patient anxious about cancer recurrence but coping "
+                    "well overall. Plan: Continue tamoxifen, consider switching to "
+                    "different SERM if joint pain worsens. Increase calcium and vitamin D."
+                ),
             },
         ]
 
@@ -290,7 +347,8 @@ async def run_realistic_demo():
 
     try:
         print("\n🤖 Initializing AI Services...")
-        ml_service._initialize_models()
+        # Initialize ML models (accessing protected method for demo purposes)
+        ml_service._initialize_models()  # pylint: disable=protected-access
         nlp_service.initialize()
         print("✅ ML models and NLP services loaded successfully")
 
@@ -318,7 +376,8 @@ async def run_realistic_demo():
 
             print("📈 Vital Signs:")
             print(
-                f"   • Blood Pressure: {vitals['systolic_bp']}/{vitals['diastolic_bp']} mmHg {bp_status}"
+                f"   • Blood Pressure: {vitals['systolic_bp']}/"
+                f"{vitals['diastolic_bp']} mmHg {bp_status}"
             )
             print(f"   • Heart Rate: {vitals['heart_rate']} bpm")
             print(f"   • Oxygen Saturation: {vitals['oxygen_saturation']}% {o2_status}")
@@ -337,11 +396,6 @@ async def run_realistic_demo():
             risk_scores = []
             try:
                 # Create RiskPredictionInput from patient data
-                from app.models.schemas import (
-                    RiskPredictionInput,
-                    VitalSigns,
-                    MedicalHistory,
-                )
 
                 vital_signs = VitalSigns(
                     systolic_bp=patient["vitals"]["systolic_bp"],
@@ -376,13 +430,15 @@ async def run_realistic_demo():
                         else "🟢"
                     )
                     print(
-                        f"   {risk_emoji} {risk.risk_type.replace('_', ' ').title()}: {risk.score:.1%} ({risk.risk_level.upper()})"
+                        f"   {risk_emoji} {risk.risk_type.replace('_', ' ').title()}: "
+                        f"{risk.score:.1%} ({risk.risk_level.upper()})"
                     )
                     if risk.contributing_factors:
                         print(
-                            f"     Contributing factors: {', '.join(risk.contributing_factors[:3])}"
+                            f"     Contributing factors: "
+                            f"{', '.join(risk.contributing_factors[:3])}"
                         )
-            except Exception as e:
+            except (ValueError, AttributeError, ImportError) as e:
                 print(f"❌ Error generating predictions: {e}")
 
             # Clinical recommendations
@@ -394,9 +450,7 @@ async def run_realistic_demo():
             # NLP Processing of clinical notes
             print("📝 NLP Analysis of Clinical Note:")
             try:
-                nlp_results = await nlp_service.extract_entities(
-                    patient["clinical_note"]
-                )
+                nlp_results = await nlp_service.extract_entities(patient["clinical_note"])
 
                 categorized = nlp_results.get("categorized", {})
                 entity_count = nlp_results.get("entity_count", 0)
@@ -405,31 +459,28 @@ async def run_realistic_demo():
 
                 if categorized.get("medications"):
                     print(
-                        f"   💊 Medications identified: {', '.join(categorized['medications'][:3])}"
+                        f"   💊 Medications identified: "
+                        f"{', '.join(categorized['medications'][:3])}"
                     )
 
                 if categorized.get("conditions"):
                     print(
-                        f"   🏥 Conditions mentioned: {', '.join(categorized['conditions'][:3])}"
+                        f"   🏥 Conditions mentioned: " f"{', '.join(categorized['conditions'][:3])}"
                     )
 
                 if categorized.get("symptoms"):
-                    print(
-                        f"   🩺 Symptoms noted: {', '.join(categorized['symptoms'][:3])}"
-                    )
+                    print(f"   🩺 Symptoms noted: " f"{', '.join(categorized['symptoms'][:3])}")
 
                 if categorized.get("measurements"):
                     print(
-                        f"   📏 Measurements found: {', '.join(categorized['measurements'][:2])}"
+                        f"   📏 Measurements found: " f"{', '.join(categorized['measurements'][:2])}"
                     )
 
                 # Generate clinical summary
-                summary = await nlp_service.summarize_text(
-                    patient["clinical_note"], max_length=120
-                )
+                summary = await nlp_service.summarize_text(patient["clinical_note"], max_length=120)
                 print(f"   📄 Clinical Summary: {summary}")
 
-            except Exception as e:
+            except (ValueError, AttributeError, ImportError) as e:
                 print(f"❌ Error processing clinical note: {e}")
 
             print("-" * 70)
@@ -452,9 +503,8 @@ async def run_realistic_demo():
         print(f"   • Total Patients: {total_patients}")
         print(f"   • Average Age: {avg_age:.1f} years")
         for gender, count in gender_dist.items():
-            print(
-                f"   • {gender.title()}: {count} patients ({count / total_patients * 100:.1f}%)"
-            )
+            percentage = count / total_patients * 100
+            print(f"   • {gender.title()}: {count} patients ({percentage:.1f}%)")
 
         # Most common conditions
         all_conditions = []
@@ -466,9 +516,9 @@ async def run_realistic_demo():
             condition_counts[condition] = condition_counts.get(condition, 0) + 1
 
         print("\n🏥 Most Common Conditions:")
-        for condition, count in sorted(
-            condition_counts.items(), key=lambda x: x[1], reverse=True
-        )[:5]:
+        for condition, count in sorted(condition_counts.items(), key=lambda x: x[1], reverse=True)[
+            :5
+        ]:
             prevalence = count / total_patients * 100
             print(f"   • {condition}: {count} patients ({prevalence:.1f}%)")
 
@@ -484,9 +534,7 @@ async def run_realistic_demo():
             med_counts[med] = med_counts.get(med, 0) + 1
 
         print("\n💊 Most Prescribed Medications:")
-        for med, count in sorted(med_counts.items(), key=lambda x: x[1], reverse=True)[
-            :5
-        ]:
+        for med, count in sorted(med_counts.items(), key=lambda x: x[1], reverse=True)[:5]:
             print(f"   • {med}: {count} patients")
 
         # Risk assessment summary
@@ -494,7 +542,8 @@ async def run_realistic_demo():
         print(f"   • All {total_patients} patients assessed using ML models")
         print("   • Risk factors analyzed: Vital signs, lab results, medical history")
         print(
-            "   • Predictions generated for: Readmission, medication adherence, disease progression"
+            "   • Predictions generated for: Readmission, medication adherence, "
+            + "disease progression"
         )
         print("   • Automated alerts created for high-risk patients")
 
@@ -510,9 +559,7 @@ async def run_realistic_demo():
         print("   • Diabetes management challenges identified in multiple patients")
         print("   • Cardiovascular risk factors prevalent across age groups")
         print("   • Medication adherence issues detected through AI analysis")
-        print(
-            "   • Early intervention opportunities identified through predictive modeling"
-        )
+        print("   • Early intervention opportunities identified through " "predictive modeling")
 
         # Platform capabilities demonstrated
         print("\n🎯 Platform Capabilities Demonstrated:")
@@ -533,13 +580,12 @@ async def run_realistic_demo():
 
         print("\n🎉 Realistic Healthcare Demo Completed Successfully!")
         print(
-            "The AI-Powered Patient Risk Prediction Platform demonstrates enterprise-ready"
-        )
-        print(
-            "capabilities for modern healthcare organizations with realistic patient scenarios."
+            "The AI-Powered Patient Risk Prediction Platform demonstrates "
+            "enterprise-ready capabilities for modern healthcare organizations "
+            "with realistic patient scenarios."
         )
 
-    except Exception as e:
+    except (ValueError, AttributeError, ImportError, RuntimeError) as e:
         print(f"❌ Demo error: {e}")
 
 

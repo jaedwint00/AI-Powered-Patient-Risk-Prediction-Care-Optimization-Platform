@@ -8,9 +8,9 @@ metrics.
 import time
 from datetime import datetime
 
+import psutil
 from fastapi import APIRouter, Depends
 from loguru import logger
-import psutil
 
 from app.database.connection import DatabaseManager, get_database
 from app.models.schemas import HealthMetrics
@@ -33,7 +33,7 @@ async def health_check(db: DatabaseManager = Depends(get_database)):
         try:
             await db.execute_query("SELECT 1")
             db_status = "healthy"
-        except (ConnectionError, TimeoutError, Exception) as e:
+        except (ConnectionError, TimeoutError, RuntimeError) as e:
             logger.warning(f"Database health check failed: {e}")
             db_status = "unhealthy"
 
@@ -96,14 +96,14 @@ async def health_check(db: DatabaseManager = Depends(get_database)):
             system_uptime=time.time() - start_time,
             database_status="error",
         )
-    except Exception as e:
+    except (RuntimeError, AttributeError, ImportError) as e:
         logger.error(f"Unexpected error in health check: {e}")
         return HealthMetrics(
             total_patients=0,
             high_risk_patients=0,
             active_alerts=0,
             predictions_today=0,
-            system_uptime=uptime,
+            system_uptime=time.time() - start_time,
             database_status="error",
         )
 
@@ -134,6 +134,6 @@ async def detailed_health_check():
     except (OSError, ValueError) as e:
         logger.error(f"System resource check failed: {e}")
         return {"status": "error", "timestamp": datetime.utcnow(), "error": str(e)}
-    except Exception as e:
+    except (RuntimeError, AttributeError, ImportError) as e:
         logger.error(f"Unexpected error in detailed health check: {e}")
         return {"status": "error", "timestamp": datetime.utcnow(), "error": str(e)}

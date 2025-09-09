@@ -2,7 +2,7 @@
 
 A comprehensive, HIPAA-compliant healthcare analytics platform that leverages AI and machine learning to predict patient risks, optimize care pathways, and enhance clinical decision-making.
 
-> **📋 Quick Links**: [📊 PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) | [🚀 DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
+> **📋 Quick Links**: [⚡ QUICK_START.md](QUICK_START.md) | [📊 PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) | [🚀 DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
 
 **✅ PLATFORM STATUS**: Fully operational and validated with realistic demo data and comprehensive API testing.
 

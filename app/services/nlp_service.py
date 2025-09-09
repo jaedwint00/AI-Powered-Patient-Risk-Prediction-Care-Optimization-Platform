@@ -12,8 +12,8 @@ import numpy as np
 import torch
 from loguru import logger
 from sentence_transformers import SentenceTransformer  # type: ignore
-from transformers import (AutoModel, AutoTokenizer, BertModel,  # type: ignore
-                          BertTokenizer, pipeline)
+from transformers import BertModel  # type: ignore
+from transformers import AutoModel, AutoTokenizer, BertTokenizer, pipeline
 
 from app.models.schemas import ExtractedEntity
 from config.settings import settings
@@ -56,7 +56,7 @@ class NLPService:
 
             # Named Entity Recognition for medical entities
             self.ner_pipeline = pipeline(
-                "ner",
+                task="ner",
                 model="d4data/biomedical-ner-all",
                 aggregation_strategy="simple",
                 device=0 if torch.cuda.is_available() else -1,

@@ -81,9 +81,7 @@ async def predict_patient_risk(
             )
 
         # Generate care recommendations
-        recommendations = await ml_service.generate_recommendations(
-            prediction_input.patient_id, risk_scores
-        )
+        recommendations = await ml_service.generate_recommendations(risk_scores)
 
         # Check for high-risk alerts
         high_risk_scores = [

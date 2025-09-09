@@ -5,16 +5,13 @@ This script demonstrates the AI healthcare platform capabilities with realistic 
 without requiring database access (works alongside running server)
 """
 
-from app.models.schemas import (  # pylint: disable=wrong-import-position
-    RiskPredictionInput,
-    VitalSigns,
-    MedicalHistory,
-)
-from app.services.nlp_service_simple import NLPService  # pylint: disable=wrong-import-position
-from app.services.ml_service import MLService  # pylint: disable=wrong-import-position
 import asyncio
 import os
 import sys
+
+from app.models.schemas import MedicalHistory, RiskPredictionInput, VitalSigns
+from app.services.ml_service import MLService
+from app.services.nlp_service_simple import NLPService
 
 # Add project root to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -450,7 +447,9 @@ async def run_realistic_demo():
             # NLP Processing of clinical notes
             print("📝 NLP Analysis of Clinical Note:")
             try:
-                nlp_results = await nlp_service.extract_entities(patient["clinical_note"])
+                nlp_results = await nlp_service.extract_entities(
+                    patient["clinical_note"]
+                )
 
                 categorized = nlp_results.get("categorized", {})
                 entity_count = nlp_results.get("entity_count", 0)
@@ -465,19 +464,26 @@ async def run_realistic_demo():
 
                 if categorized.get("conditions"):
                     print(
-                        f"   🏥 Conditions mentioned: " f"{', '.join(categorized['conditions'][:3])}"
+                        f"   🏥 Conditions mentioned: "
+                        f"{', '.join(categorized['conditions'][:3])}"
                     )
 
                 if categorized.get("symptoms"):
-                    print(f"   🩺 Symptoms noted: " f"{', '.join(categorized['symptoms'][:3])}")
+                    print(
+                        f"   🩺 Symptoms noted: "
+                        f"{', '.join(categorized['symptoms'][:3])}"
+                    )
 
                 if categorized.get("measurements"):
                     print(
-                        f"   📏 Measurements found: " f"{', '.join(categorized['measurements'][:2])}"
+                        f"   📏 Measurements found: "
+                        f"{', '.join(categorized['measurements'][:2])}"
                     )
 
                 # Generate clinical summary
-                summary = await nlp_service.summarize_text(patient["clinical_note"], max_length=120)
+                summary = await nlp_service.summarize_text(
+                    patient["clinical_note"], max_length=120
+                )
                 print(f"   📄 Clinical Summary: {summary}")
 
             except (ValueError, AttributeError, ImportError) as e:
@@ -516,9 +522,9 @@ async def run_realistic_demo():
             condition_counts[condition] = condition_counts.get(condition, 0) + 1
 
         print("\n🏥 Most Common Conditions:")
-        for condition, count in sorted(condition_counts.items(), key=lambda x: x[1], reverse=True)[
-            :5
-        ]:
+        for condition, count in sorted(
+            condition_counts.items(), key=lambda x: x[1], reverse=True
+        )[:5]:
             prevalence = count / total_patients * 100
             print(f"   • {condition}: {count} patients ({prevalence:.1f}%)")
 
@@ -534,7 +540,9 @@ async def run_realistic_demo():
             med_counts[med] = med_counts.get(med, 0) + 1
 
         print("\n💊 Most Prescribed Medications:")
-        for med, count in sorted(med_counts.items(), key=lambda x: x[1], reverse=True)[:5]:
+        for med, count in sorted(med_counts.items(), key=lambda x: x[1], reverse=True)[
+            :5
+        ]:
             print(f"   • {med}: {count} patients")
 
         # Risk assessment summary
@@ -559,7 +567,10 @@ async def run_realistic_demo():
         print("   • Diabetes management challenges identified in multiple patients")
         print("   • Cardiovascular risk factors prevalent across age groups")
         print("   • Medication adherence issues detected through AI analysis")
-        print("   • Early intervention opportunities identified through " "predictive modeling")
+        print(
+            "   • Early intervention opportunities identified through "
+            "predictive modeling"
+        )
 
         # Platform capabilities demonstrated
         print("\n🎯 Platform Capabilities Demonstrated:")

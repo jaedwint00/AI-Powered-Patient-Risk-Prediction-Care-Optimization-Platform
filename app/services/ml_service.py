@@ -11,10 +11,8 @@ import joblib  # type: ignore
 import numpy as np
 import torch.nn as nn
 from loguru import logger
-from sklearn.ensemble import (
-    GradientBoostingClassifier,  # type: ignore
-    RandomForestClassifier,
-)
+from sklearn.ensemble import GradientBoostingClassifier  # type: ignore
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score  # type: ignore
 from sklearn.model_selection import train_test_split  # type: ignore
 from sklearn.preprocessing import StandardScaler  # type: ignore
@@ -36,6 +34,7 @@ class RiskPredictionModel(nn.Module):
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
+        """Forward pass through the neural network."""
         x = self.relu(self.fc1(x))
         x = self.dropout(x)
         x = self.relu(self.fc2(x))
@@ -67,7 +66,7 @@ class MLService:
 
             logger.info("ML models initialized successfully")
 
-        except Exception as e:
+        except (FileNotFoundError, ImportError, ValueError) as e:
             logger.error(f"Failed to initialize ML models: {e}")
             # Create default models
             self._create_default_models()
@@ -393,7 +392,7 @@ class MLService:
 
             return risk_scores
 
-        except Exception as e:
+        except (ValueError, KeyError, AttributeError, TypeError) as e:
             logger.error(f"Failed to generate risk predictions: {e}")
             # Return default low-risk scores
             return [

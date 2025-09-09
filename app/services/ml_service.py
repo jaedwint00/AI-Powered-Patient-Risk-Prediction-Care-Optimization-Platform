@@ -9,7 +9,7 @@ from typing import Dict, List, Union
 
 import joblib  # type: ignore
 import numpy as np
-import torch.nn as nn
+from torch import nn
 from loguru import logger
 from sklearn.ensemble import GradientBoostingClassifier  # type: ignore
 from sklearn.ensemble import RandomForestClassifier
@@ -25,7 +25,7 @@ class RiskPredictionModel(nn.Module):
     """PyTorch neural network for risk prediction"""
 
     def __init__(self, input_size: int, hidden_size: int = 128, num_classes: int = 4):
-        super(RiskPredictionModel, self).__init__()
+        super().__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.fc2 = nn.Linear(hidden_size, hidden_size // 2)
         self.fc3 = nn.Linear(hidden_size // 2, num_classes)
@@ -92,7 +92,7 @@ class MLService:
 
         # Features: age, length_of_stay, num_diagnoses, num_medications,
         # emergency_visits
-        X = np.random.rand(n_samples, 5)
+        X = np.random.rand(n_samples, 5)  # pylint: disable=invalid-name
         X[:, 0] = np.random.normal(65, 15, n_samples)  # age
         X[:, 1] = np.random.exponential(5, n_samples)  # length_of_stay
         X[:, 2] = np.random.poisson(3, n_samples)  # num_diagnoses
@@ -107,6 +107,7 @@ class MLService:
         y = (risk_score > np.percentile(risk_score, 75)).astype(int)
 
         # Train model
+        # pylint: disable=invalid-name
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.2, random_state=42
         )
@@ -150,7 +151,7 @@ class MLService:
 
         # Features: age, num_medications, complexity_score, socioeconomic_factor,
         # previous_adherence
-        X = np.random.rand(n_samples, 5)
+        X = np.random.rand(n_samples, 5)  # pylint: disable=invalid-name
         X[:, 0] = np.random.normal(60, 20, n_samples)  # age
         X[:, 1] = np.random.poisson(4, n_samples)  # num_medications
         X[:, 2] = np.random.uniform(1, 10, n_samples)  # complexity_score
@@ -162,6 +163,7 @@ class MLService:
         risk_score = X[:, 1] / 10 + (1 - X[:, 3]) + X[:, 2] / 10 + (1 - X[:, 4])
         y = (risk_score > np.percentile(risk_score, 70)).astype(int)
 
+        # pylint: disable=invalid-name
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.2, random_state=42
         )
@@ -202,7 +204,7 @@ class MLService:
         n_samples = 1000
 
         # Features: age, hba1c, bp_systolic, bmi, duration_of_disease
-        X = np.random.rand(n_samples, 5)
+        X = np.random.rand(n_samples, 5)  # pylint: disable=invalid-name
         X[:, 0] = np.random.normal(65, 12, n_samples)  # age
         X[:, 1] = np.random.normal(7.5, 1.5, n_samples)  # hba1c
         X[:, 2] = np.random.normal(140, 20, n_samples)  # bp_systolic
@@ -216,8 +218,9 @@ class MLService:
             + (X[:, 3] - 25) / 10
             + X[:, 4] / 10
         )
-        y = (risk_score > np.percentile(risk_score, 75)).astype(int)
+        y = (risk_score > np.percentile(risk_score, 60)).astype(int)
 
+        # pylint: disable=invalid-name
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.2, random_state=42
         )

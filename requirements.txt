@@ -1,8 +1,8 @@
 # Core Framework
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
-pydantic==2.5.0
-pydantic-settings==2.1.0
+pydantic==2.11.7
+pydantic-settings==2.10.1
 starlette==0.27.0
 
 # Machine Learning Core
@@ -33,9 +33,9 @@ pyarrow==21.0.0
 pyarrow-hotfix==0.7
 
 # Security and Authentication
-python-jose[cryptography]==3.3.0
+python-jose[cryptography]==3.5.0
 passlib[bcrypt]==1.7.4
-python-multipart==0.0.6
+python-multipart==0.0.20
 cryptography==45.0.7
 bcrypt==4.3.0
 
@@ -57,7 +57,7 @@ python-dotenv==1.1.1
 tqdm==4.67.1
 
 # Testing
-pytest==7.4.3
+pytest==8.3.3
 pytest-asyncio==0.21.1
 
 # System Monitoring
@@ -89,7 +89,7 @@ jinja2==3.1.6
 markupsafe==3.0.2
 typing-extensions==4.15.0
 annotated-types==0.7.0
-pydantic-core==2.14.1
+pydantic-core==2.33.2
 anyio==3.7.1
 sniffio==1.3.1
 h11==0.16.0
